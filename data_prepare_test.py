@@ -96,7 +96,8 @@ def construct_graph(hits, layer_pairs,
     X = (hits[feature_names].values / feature_scale).astype(np.float32)
     Ri = np.zeros((n_hits, n_edges), dtype=np.uint8)
     Ro = np.zeros((n_hits, n_edges), dtype=np.uint8)
-    y = np.zeros(n_edges, dtype=np.float32)
+    # y = np.zeros(n_edges, dtype=np.float32)
+    y = hits['noise']
     I = hits['noise']
 
     # We have the segments' hits given by dataframe label,
@@ -114,7 +115,7 @@ def construct_graph(hits, layer_pairs,
     # Fill the segment labels
     pid1 = hits.particle_id.loc[segments.index_1].values
     pid2 = hits.particle_id.loc[segments.index_2].values
-    y[:] = (pid1 == pid2)
+    # y[:] = (pid1 == pid2)
     # Return a tuple of the results
     return Graph(X, Ri, Ro, y), I
 
@@ -214,14 +215,14 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
         base_prefix = os.path.basename(prefix)
         filenames = [os.path.join(output_dir, '%s_g%03i' % (base_prefix, i))
                      for i in range(len(graphs))]
-        filenames_ID = [os.path.join(output_dir, '%s_g%03i_ID' % (base_prefix, i))
-                     for i in range(len(graphs))]
+        # filenames_ID = [os.path.join(output_dir, '%s_g%03i_ID' % (base_prefix, i))
+        #              for i in range(len(graphs))]
     except Exception as e:
         logging.info(e)
     logging.info('Event %i, writing graphs', evtid)
     save_graphs(graphs, filenames)
-    for ID, file_name in zip(IDs, filenames_ID):
-        np.savez(file_name, ID=ID)
+    # for ID, file_name in zip(IDs, filenames_ID):
+    #     np.savez(file_name, ID=ID)
 
 def main():
     """Main function"""

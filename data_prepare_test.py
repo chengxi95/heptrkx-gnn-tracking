@@ -97,7 +97,7 @@ def construct_graph(hits, layer_pairs,
     Ri = np.zeros((n_hits, n_edges), dtype=np.uint8)
     Ro = np.zeros((n_hits, n_edges), dtype=np.uint8)
     y = np.zeros(n_edges, dtype=np.float32)
-    I = hits['hit_id']
+    I = hits['noise']
 
     # We have the segments' hits given by dataframe label,
     # so we need to translate into positional indices.
@@ -139,13 +139,18 @@ def select_hits(hits, truth, particles, pt_min=0):
     r = np.sqrt(hits.x**2 + hits.y**2)
     phi = np.arctan2(hits.y, hits.x)
     # Select the data columns we need
-    hits = (hits[['hit_id', 'z', 'layer']]
-            .assign(r=r, phi=phi)
-            .merge(truth[['hit_id', 'particle_id']], on='hit_id'))
-    # Remove duplicate hits
-    hits = hits.loc[
-        hits.groupby(['particle_id', 'layer'], as_index=False).r.idxmin()
-    ]
+    # hits = (hits[['hit_id', 'z', 'layer']]
+    #         .assign(r=r, phi=phi)
+    #         .merge(truth[['hit_id', 'particle_id']], on='hit_id'))
+    hits = pd.merge(hits[['hit_id', 'z', 'layer']].assign(r=r, phi=phi), truth[['hit_id', 'particle_id']],
+                    how='left', on='hit_id').fillna(-1)
+    hits['particle_id'] = hits['particle_id'].astype('int64')
+    hits = hits.assign(noise=0)
+    hits.loc[hits['particle_id'] == -1, 'noise'] = 1
+    # # Remove duplicate hits
+    # hits = hits.loc[
+    #     hits.groupby(['particle_id', 'layer'], as_index=False).r.idxmin()
+    # ]
     return hits
 
 def split_detector_sections(hits, phi_edges, eta_edges):

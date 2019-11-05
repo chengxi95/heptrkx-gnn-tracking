@@ -1,0 +1,22 @@
+output_dir: finalresults/agnntest
+
+trainer:
+    name: gnn_sparse
+
+data:
+    name: hitgraphs_sparse
+    input_dir: results
+    n_train: 70
+    n_valid: 30
+    real_weight: 3
+    batch_size: 4
+    n_workers: 4
+
+model:
+    name: agnn
+    input_dim: 3
+    hidden_dim: 30
+    hidden_activation: Tanh
+    n_graph_iters: 8
+    layer_norm: true
+    loss_func: binary_cross_entropy_with_logits

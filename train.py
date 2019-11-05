@@ -26,7 +26,7 @@ def parse_args():
     hpo_warning = 'Flag overwrites config value if set, used for HPO and PBT runs primarily'
     parser = argparse.ArgumentParser('train.py')
     add_arg = parser.add_argument
-    add_arg('config', nargs='?', default='configs/hello.yaml')
+    add_arg('config', nargs='?', default='configs/agnntest.yaml')
     add_arg('-d', '--distributed', choices=['ddp-file', 'ddp-mpi', 'cray'])
     add_arg('-v', '--verbose', action='store_true')
     add_arg('--ranks-per-node', default=8)

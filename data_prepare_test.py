@@ -71,7 +71,6 @@ def construct_graph(hits, layer_pairs,
                     phi_slope_max, z0_max,
                     feature_names, feature_scale):
     """Construct one graph (e.g. from one event)"""
-
     # Loop over layer pairs and construct segments
     layer_groups = hits.groupby('layer')
     segments = []
@@ -98,7 +97,8 @@ def construct_graph(hits, layer_pairs,
     Ro = np.zeros((n_hits, n_edges), dtype=np.uint8)
     # y = np.zeros(n_edges, dtype=np.float32)
     y = hits['noise']
-    I = hits['noise']
+    print(y)
+    # I = hits['noise']
 
     # We have the segments' hits given by dataframe label,
     # so we need to translate into positional indices.
@@ -117,7 +117,7 @@ def construct_graph(hits, layer_pairs,
     pid2 = hits.particle_id.loc[segments.index_2].values
     # y[:] = (pid1 == pid2)
     # Return a tuple of the results
-    return Graph(X, Ri, Ro, y), I
+    return Graph(X, Ri, Ro, y)
 
 def select_hits(hits, truth, particles, pt_min=0):
     # Barrel volume and layer ids
@@ -130,10 +130,10 @@ def select_hits(hits, truth, particles, pt_min=0):
     hits = pd.concat([vlid_groups.get_group(vlids[i]).assign(layer=i)
                       for i in range(n_det_layers)])
     # Calculate particle transverse momentum
-    pt = np.sqrt(particles.px**2 + particles.py**2)
+    # pt = np.sqrt(particles.px**2 + particles.py**2)
     # True particle selection.
     # Applies pt cut, removes all noise hits.
-    particles = particles[pt > pt_min]
+    # particles = particles[pt > pt_min]
     truth = (truth[['hit_id', 'particle_id']]
              .merge(particles[['particle_id']], on='particle_id'))
     # Calculate derived hits variables
@@ -145,6 +145,7 @@ def select_hits(hits, truth, particles, pt_min=0):
     #         .merge(truth[['hit_id', 'particle_id']], on='hit_id'))
     hits = pd.merge(hits[['hit_id', 'z', 'layer']].assign(r=r, phi=phi), truth[['hit_id', 'particle_id']],
                     how='left', on='hit_id').fillna(-1)
+    # print(hits.head())
     hits['particle_id'] = hits['particle_id'].astype('int64')
     hits = hits.assign(noise=0)
     hits.loc[hits['particle_id'] == -1, 'noise'] = 1
@@ -184,7 +185,6 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     # Apply hit selection
     logging.info('Event %i, selecting hits' % evtid)
     hits = select_hits(hits, truth, particles, pt_min=pt_min).assign(evtid=evtid)
-
     # Divide detector into sections
     #phi_range = (-np.pi, np.pi)
     phi_edges = np.linspace(*phi_range, num=n_phi_sections+1)
@@ -207,8 +207,8 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
                               feature_names=feature_names,
                               feature_scale=feature_scale)
               for section_hits in hits_sections]
-    graphs = [x[0] for x in graphs_all]
-    IDs    = [x[1] for x in graphs_all]
+    graphs = graphs_all
+    # IDs    = [x[1] for x in graphs_all]
 
     # Write these graphs to the output directory
     try:

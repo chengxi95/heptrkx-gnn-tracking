@@ -9,11 +9,11 @@ data:
     n_train: 70
     n_valid: 30
     real_weight: 3
-    batch_size: 4
+    batch_size: 2
     n_workers: 4
 
 model:
-    name: agnn
+    name: agnn_original
     input_dim: 3
     hidden_dim: 30
     hidden_activation: Tanh

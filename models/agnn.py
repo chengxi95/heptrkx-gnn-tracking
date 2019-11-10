@@ -81,6 +81,9 @@ class GNNSegmentClassifier(nn.Module):
         self.node_network = NodeNetwork(hidden_dim, hidden_dim,
                                         hidden_activation, layer_norm=layer_norm)
 
+        # Setup the output layers
+        self.output_network = make_mlp(hidden_dim, [hidden_dim, hidden_dim, hidden_dim, 1], output_activation=hidden_activation, layer_norm=layer_norm)
+
     def forward(self, inputs):
         """Apply forward pass of the model"""
 
@@ -109,4 +112,5 @@ class GNNSegmentClassifier(nn.Module):
             x = x + x0
 
         # Apply final edge network
-        return self.edge_network(x, inputs.edge_index)
+        # return self.edge_network(x, inputs.edge_index)
+            return self.output_network(x)

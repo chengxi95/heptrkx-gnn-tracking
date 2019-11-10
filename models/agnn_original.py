@@ -26,13 +26,15 @@ class EdgeNetwork(nn.Module):
             nn.LayerNorm(hidden_dim),
             hidden_activation(),
             nn.Linear(hidden_dim, 1))
+
+    # X[batch, N_o, input_dim] Ri/Ro[batch, N_o, N_r]
     def forward(self, X, Ri, Ro):
         # Select the features of the associated nodes
-        bo = torch.bmm(Ro.transpose(1, 2), X)
-        bi = torch.bmm(Ri.transpose(1, 2), X)
-        B = torch.cat([bo, bi], dim=2)
+        bo = torch.bmm(Ro.transpose(1, 2), X)   # [batch, N_r, input_dim]
+        bi = torch.bmm(Ri.transpose(1, 2), X)   # [batch, N_r, input_dim]
+        B = torch.cat([bo, bi], dim=2)  # [batch, N_r, 2*input_dim]
         # Apply the network to each edge
-        return self.network(B).squeeze(-1)
+        return self.network(B).squeeze(-1)  # [batch, N_r]
 
 class NodeNetwork(nn.Module):
     """
@@ -57,14 +59,16 @@ class NodeNetwork(nn.Module):
             nn.Linear(output_dim, output_dim),
             nn.LayerNorm(output_dim),
             hidden_activation())
+
+    # X[batch, N_o, input_dim], e[batch, N_e], Ri/Ro[batch, N_o,N_e]
     def forward(self, X, e, Ri, Ro):
-        bo = torch.bmm(Ro.transpose(1, 2), X)
-        bi = torch.bmm(Ri.transpose(1, 2), X)
-        Rwo = Ro * e[:,None]
-        Rwi = Ri * e[:,None]
-        mi = torch.bmm(Rwi, bo)
-        mo = torch.bmm(Rwo, bi)
-        M = torch.cat([mi, mo, X], dim=2)
+        bo = torch.bmm(Ro.transpose(1, 2), X)  # [batch, N_e, N_o]
+        bi = torch.bmm(Ri.transpose(1, 2), X)  # [batch, N_e, N_o]
+        Rwo = Ro * e[:,None]    # [batch, N_o, N_e]
+        Rwi = Ri * e[:,None]    # [batch, N_o, N_e]
+        mi = torch.bmm(Rwi, bo) # [batch, N_o]
+        mo = torch.bmm(Rwo, bi) # [batch, N_o]
+        M = torch.cat([mi, mo, X], dim=2) # [batch, 3
         return self.network(M)
 
 class GNNSegmentClassifier(nn.Module):
@@ -88,11 +92,11 @@ class GNNSegmentClassifier(nn.Module):
 
     def forward(self, inputs):
         """Apply forward pass of the model"""
-        X, Ri, Ro = inputs
+        X, Ri, Ro = inputs         # X[N_o, input_dim]
         # Apply input network to get hidden representation
-        H = self.input_network(X)
+        H = self.input_network(X)      # H[N_o, hidden_dim]
         # Shortcut connect the inputs onto the hidden representation
-        H = torch.cat([H, X], dim=-1)
+        H = torch.cat([H, X], dim=-1)    # H[N_o, hidden_dim+input_dim]
         # Loop over iterations of edge and node networks
         for i in range(self.n_iters):
             # Apply edge network

@@ -1,11 +1,11 @@
-output_dir: finalresults/agnntest
+output_dir: finalresults/agnn_full
 
 trainer:
     name: gnn_sparse
 
 data:
     name: hitgraphs_sparse
-    input_dir: results
+    input_dir: results_larger
     n_train: 70
     n_valid: 30
     real_weight: 3

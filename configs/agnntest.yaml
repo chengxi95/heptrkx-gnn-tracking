@@ -13,10 +13,21 @@ data:
     n_workers: 4
 
 model:
-    name: agnn_original
+    name: agnn
     input_dim: 3
     hidden_dim: 30
     hidden_activation: Tanh
     n_graph_iters: 8
     layer_norm: true
     loss_func: binary_cross_entropy_with_logits
+
+optimizer:
+    name: Adam
+    learning_rate: 0.001
+    weight_decay: 1.e-4
+    lr_decay_schedule:
+        - {start_epoch: 64, end_epoch: 128, factor: 0.1}
+
+training:
+    n_total_epochs: 128
+

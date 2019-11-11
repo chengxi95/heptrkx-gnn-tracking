@@ -28,7 +28,8 @@ class SparseGNNTrainer(GNNBaseTrainer):
             batch = batch.to(self.device)
             self.model.zero_grad()
             batch_output = self.model(batch)
-            batch_loss = self.loss_func(batch_output, batch.y, weight=batch.w)
+            batch_loss = self.loss_func(batch_output, batch.y.float(), weight=batch.w)
+
             batch_loss.backward()
             self.optimizer.step()
             sum_loss += batch_loss.item()
@@ -70,7 +71,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
             # Make predictions on this batch
             batch_output = self.model(batch)
-            batch_loss = self.loss_func(batch_output, batch.y).item()
+            batch_loss = self.loss_func(batch_output, batch.y.float()).item()
             sum_loss += batch_loss
 
             # Count number of correct predictions

@@ -97,7 +97,7 @@ def construct_graph(hits, layer_pairs,
     Ro = np.zeros((n_hits, n_edges), dtype=np.uint8)
     # y = np.zeros(n_edges, dtype=np.float32)
     y = hits['noise']
-    print(y)
+    #print(y)
     # I = hits['noise']
 
     # We have the segments' hits given by dataframe label,

@@ -7,7 +7,7 @@ import logging
 
 # Externals
 import torch
-
+import numpy as np
 # Locals
 from .gnn_base import GNNBaseTrainer
 from utils.checks import get_weight_norm, get_grad_norm
@@ -27,17 +27,22 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
         # Loop over training batches
         for i, batch in enumerate(data_loader):
+            batch.y = batch.y[0].view(1)
+            batch.w = batch.w[0].view(1)
             batch = batch.to(self.device)
             self.model.zero_grad()
             batch_output = self.model(batch)
+            self.logger.debug(f'output size: {batch_output.shape}')
             batch_pred = torch.sigmoid(batch_output)
-            
+
+            logging.debug(f'match type and y type {type(batch_pred)} {type(batch.y)}')
             matches = ((batch_pred > 0.5) == (batch.y > 0.5))
             sum_correct += matches.sum().item()
             sum_total += matches.numel()
 
-            batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float().float(), weight=batch.w.float())
-
+            #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float().float(), weight=batch.w.float())
+            logging.debug(f'batch w size : {batch.w.shape}')
+            batch_loss = self.loss_func(batch_output, batch.y.float(), weight=batch.w)
             batch_loss.backward()
             self.optimizer.step()
             sum_loss += batch_loss.item()
@@ -80,11 +85,13 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
         # Loop over batches
         for i, batch in enumerate(data_loader):
+            batch.y = batch.y[0].view(1)
+            batch.w = batch.w[0].view(1)
             batch = batch.to(self.device)
-
             # Make predictions on this batch
             batch_output = self.model(batch)
-            batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float()).item()
+            #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float()).item()
+            batch_loss = self.loss_func(batch_output, batch.y.float()).item()
             sum_loss += batch_loss
 
             # Count number of correct predictions

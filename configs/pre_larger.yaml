@@ -1,7 +1,7 @@
 # input/output configuration
-input_dir: datasets/larger_traning
+input_dir: datasets/larger_training
 output_dir: results_larger
-n_files: 400
+n_files: 5000
 
 # Graph building configuration
 selection:

@@ -1,15 +1,15 @@
-output_dir: finalresults/agnntest
+output_dir: finalresults/ip_trigger
 
 trainer:
     name: gnn_sparse
 
 data:
     name: hitgraphs_sparse
-    input_dir: results
-    n_train: 70
-    n_valid: 30
+    input_dir: results/ip_trigger
+    n_train: 600
+    n_valid: 100
     real_weight: 3
-    batch_size: 2
+    batch_size: 1
     n_workers: 4
 
 model:
@@ -19,7 +19,7 @@ model:
     hidden_activation: Tanh
     n_graph_iters: 8
     layer_norm: true
-    loss_func: binary_cross_entropy
+    loss_func: binary_cross_entropy_with_logits
 
 optimizer:
     name: Adam

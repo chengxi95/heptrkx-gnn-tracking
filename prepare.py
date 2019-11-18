@@ -1,3 +1,4 @@
+# use for ip and trigger detection
 """
 Data preparation script for GNN tracking.
 
@@ -24,7 +25,7 @@ def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser('prepare.py')
     add_arg = parser.add_argument
-    add_arg('config', nargs='?', default='configs/pre_test.yaml')
+    add_arg('config', nargs='?', default='configs/pre_phenix.yaml')
     add_arg('--n-workers', type=int, default=1)
     add_arg('--task', type=int, default=0)
     add_arg('--n-tasks', type=int, default=1)
@@ -64,7 +65,7 @@ def select_segments(hits1, hits2, phi_slope_max, z0_max):
     phi_slope = dphi / dr
     z0 = hit_pairs.z_1 - hit_pairs.r_1 * dz / dr
     # Filter segments according to criteria
-    good_seg_mask = (phi_slope.abs() < phi_slope_max) & (z0.abs() < z0_max)
+    good_seg_mask = (phi_slope.abs() < phi_slope_max) & (z0.abs() < z0_max)   
     return hit_pairs[['index_1', 'index_2']][good_seg_mask]
 
 def construct_graph(hits, layer_pairs,
@@ -90,13 +91,25 @@ def construct_graph(hits, layer_pairs,
     # Combine segments from all layer pairs
     segments = pd.concat(segments)
 
+    n_edges = segments.shape[0]
+
+    pid1 = hits.particle_id.loc[segments.index_1].values
+    pid2 = hits.particle_id.loc[segments.index_2].values
+
+    print(f'before remove segments: {pid1.shape} {pid2.shape}')
+    y = np.zeros(n_edges, dtype=np.float32)
+    y[:] = (pid1 == pid2)
+#    print(f'after remove segments: {pid1.shape} {pid2.shape}')
+    # only choose true edge
+    segments = segments[y!=0]
+    
     # Prepare the graph matrices
     n_hits = hits.shape[0]
     n_edges = segments.shape[0]
     X = (hits[feature_names].values / feature_scale).astype(np.float32)
     Ri = np.zeros((n_hits, n_edges), dtype=np.uint8)
     Ro = np.zeros((n_hits, n_edges), dtype=np.uint8)
-    y = np.zeros(n_edges, dtype=np.float32)
+    y = hits[['trigger', 'ipx', 'ipy', 'ipz']]
     I = hits['hit_id']
 
     # We have the segments' hits given by dataframe label,
@@ -111,35 +124,33 @@ def construct_graph(hits, layer_pairs,
     # which are actually segment endings.
     Ri[seg_end, np.arange(n_edges)] = 1
     Ro[seg_start, np.arange(n_edges)] = 1
-    # Fill the segment labels
-    pid1 = hits.particle_id.loc[segments.index_1].values
-    pid2 = hits.particle_id.loc[segments.index_2].values
-    y[:] = (pid1 == pid2)
     # Return a tuple of the results
     return Graph(X, Ri, Ro, y), I
 
 def select_hits(hits, truth, particles, pt_min=0):
     # Barrel volume and layer ids
-    vlids = [(8,2), (8,4), (8,6), (8,8),
-             (13,2), (13,4), (13,6), (13,8),
-             (17,2), (17,4)]
-    n_det_layers = len(vlids)
+#    vlids = [(0,0), (1,1), (2,2), (3,3),
+#             (4,4), (5,5)]
+#    n_det_layers = len(vlids)
     # Select barrel layers and assign convenient layer number [0-9]
     vlid_groups = hits.groupby(['volume_id', 'layer_id'])
-    hits = pd.concat([vlid_groups.get_group(vlids[i]).assign(layer=i)
-                      for i in range(n_det_layers)])
+#    hits = pd.concat([vlid_groups.get_group(vlids[i]).assign(layer=i)
+#                      for i in range(n_det_layers)])
+
+    hits['layer'] = hits['layer_id']
     # Calculate particle transverse momentum
-    pt = np.sqrt(particles.px**2 + particles.py**2)
+    #pt = np.sqrt(particles.px**2 + particles.py**2)
     # True particle selection.
     # Applies pt cut, removes all noise hits.
-    particles = particles[pt > pt_min]
+    #particles = particles[pt > pt_min]
     truth = (truth[['hit_id', 'particle_id']]
              .merge(particles[['particle_id']], on='particle_id'))
     # Calculate derived hits variables
     r = np.sqrt(hits.x**2 + hits.y**2)
     phi = np.arctan2(hits.y, hits.x)
     # Select the data columns we need
-    hits = (hits[['hit_id', 'z', 'layer']]
+    
+    hits = (hits[['hit_id', 'z', 'layer', 'trigger', 'ipx', 'ipy', 'ipz']]
             .assign(r=r, phi=phi)
             .merge(truth[['hit_id', 'particle_id']], on='hit_id'))
     # Remove duplicate hits
@@ -178,7 +189,6 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     # Apply hit selection
     logging.info('Event %i, selecting hits' % evtid)
     hits = select_hits(hits, truth, particles, pt_min=pt_min).assign(evtid=evtid)
-
     # Divide detector into sections
     #phi_range = (-np.pi, np.pi)
     phi_edges = np.linspace(*phi_range, num=n_phi_sections+1)
@@ -190,9 +200,9 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     feature_scale = np.array([1000., np.pi / n_phi_sections, 1000.])
 
     # Define adjacent layers
-    n_det_layers = 10
-    l = np.arange(n_det_layers)
-    layer_pairs = np.stack([l[:-1], l[1:]], axis=1)
+    n_det_layers = 6
+    layer_pairs = np.array([(0,1), (0,2), (0,3), (1,2), (1,3), (2,3), (2,4), (2,5), (3,4), (3,5), (4,5)])
+
 
     # Construct the graph
     logging.info('Event %i, constructing graphs' % evtid)
@@ -204,6 +214,7 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     graphs = [x[0] for x in graphs_all]
     IDs    = [x[1] for x in graphs_all]
 
+    print('after creating graph')
     # Write these graphs to the output directory
     try:
         base_prefix = os.path.basename(prefix)
@@ -214,6 +225,7 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     except Exception as e:
         logging.info(e)
     logging.info('Event %i, writing graphs', evtid)
+    print('before save graph')
     save_graphs(graphs, filenames)
     for ID, file_name in zip(IDs, filenames_ID):
         np.savez(file_name, ID=ID)
@@ -239,8 +251,8 @@ def main():
         logging.info('Configuration: %s' % config)
 
     # Construct layer pairs from adjacent layer numbers
-    layers = np.arange(10)
-    layer_pairs = np.stack([layers[:-1], layers[1:]], axis=1)
+    layers = np.arange(6)
+    layer_pairs = np.array([(0,1), (0,2), (0,3), (1,2), (1,3), (2,3), (2,4), (2,5), (3,4), (3,5), (4,5)])
 
     # Find the input files
     input_dir = config['input_dir']

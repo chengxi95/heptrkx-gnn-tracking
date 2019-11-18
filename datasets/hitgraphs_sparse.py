@@ -12,7 +12,8 @@ import torch_geometric
 
 def load_graph(filename):
     with np.load(filename) as f:
-        x, y = f['X'], f['y']
+        x, y = f['X'], f['trigger']
+        y = np.asarray(y)
         Ri_rows, Ri_cols = f['Ri_rows'], f['Ri_cols']
         Ro_rows, Ro_cols = f['Ro_rows'], f['Ro_cols']
         n_edges = Ri_cols.shape[0]
@@ -42,6 +43,7 @@ class HitGraphDataset(Dataset):
         x, edge_index, y = load_graph(self.filenames[index])
         # Compute weights
         w = y * self.real_weight + (1-y) * self.fake_weight
+        #print(f'w type {type(y)}')
         return torch_geometric.data.Data(x=torch.from_numpy(x),
                                          edge_index=torch.from_numpy(edge_index),
                                          y=torch.from_numpy(y), w=torch.from_numpy(w),

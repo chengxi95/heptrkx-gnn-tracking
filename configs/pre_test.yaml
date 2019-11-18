@@ -1,7 +1,7 @@
 # input/output configuration
-input_dir: datasets/
-output_dir: results
-n_files: 400
+input_dir: datasets/phenix_ip
+output_dir: results/ip_trigger
+n_files: 2380
 
 # Graph building configuration
 selection:

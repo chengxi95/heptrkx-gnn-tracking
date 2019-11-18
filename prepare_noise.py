@@ -3,6 +3,8 @@
 Data preparation script for GNN tracking.
 
 This script processes the TrackML dataset and produces graph data on disk.
+
+keep the noise and edge as ground truth
 """
 
 # System
@@ -208,7 +210,7 @@ def process_event(prefix, output_dir, pt_min, n_eta_sections, n_phi_sections,
     y_len = 0
     for i in range(len(graphs)):
         y_len += len(graphs[i].y)
-    print(f'y length: {y_len}')
+    #print(f'y length: {y_len}')
     # Write these graphs to the output directory
     try:
         base_prefix = os.path.basename(prefix)

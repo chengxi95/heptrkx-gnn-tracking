@@ -19,7 +19,7 @@ model:
     hidden_activation: Tanh
     n_graph_iters: 8
     layer_norm: true
-    loss_func: binary_cross_entropy_with_logits
+    loss_func: mse_loss
 
 optimizer:
     name: Adam

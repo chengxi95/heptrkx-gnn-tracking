@@ -142,7 +142,7 @@ class GNNSegmentClassifier(nn.Module):
         #combine_node = torch.sum(x, dim=0)
         #return self.edge_network(x, inputs.edge_index)
         #logging.debug(f'shape of sum tensor: {torch.sum(x, dim=0).shape}')
-        output_node = self.output_network(global_node.squeeze(0))
+        output_node = self.output_network(full_node[-1,:,:])
         logging.debug(f'shape of output: {output_node.shape}')
         return output_node
         #return self.output_network(x).squeeze(-1)

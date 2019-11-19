@@ -34,7 +34,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
             batch_output = self.model(batch)
             self.logger.debug(f'output size: {batch_output.shape}')
             batch_pred = torch.sigmoid(batch_output)
-
+            self.logger.debug(f'prediction: {batch_pred}, ground gruth: {batch.y}')
             logging.debug(f'match type and y type {type(batch_pred)} {type(batch.y)}')
             matches = ((batch_pred > 0.5) == (batch.y > 0.5))
             sum_correct += matches.sum().item()
@@ -100,6 +100,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
             predict_hits = batch_pred < 0.5
             true_noise = batch.y == 1
             true_hits = batch.y == 0
+            self.logger.debug(f'prediction: {batch_pred}, ground gruth: {batch.y}')
             self.logger.debug(f'\n--val batch predict noise: {predict_noise.sum().item()} true hits: {predict_hits.sum().item()} \n--val batch ground  noise: {true_noise.sum().item()} true hits: {true_hits.sum().item()}')
             matches = ((batch_pred > 0.5) == (batch.y > 0.5))
             sum_correct += matches.sum().item()

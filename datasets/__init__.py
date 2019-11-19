@@ -36,7 +36,7 @@ def get_data_loaders(name, batch_size, distributed=False,
     train_data_loader = DataLoader(train_dataset, sampler=train_sampler,
                                    shuffle=(train_sampler is None), **loader_args)
     #train_data_loader = DataLoader(train_dataset, sampler=train_sampler,
-                                   shuffle=True, **loader_args)
+    #                               shuffle=True, **loader_args)
     valid_data_loader = (DataLoader(valid_dataset, sampler=valid_sampler, **loader_args)
                          if valid_dataset is not None else None)
     return train_data_loader, valid_data_loader

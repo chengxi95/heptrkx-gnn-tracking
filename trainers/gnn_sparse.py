@@ -44,6 +44,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
             #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float().float(), weight=batch.w.float())
             #logging.debug(f'batch w size : {batch.w.shape}')
             #batch_loss = self.loss_func(batch_output, batch.y.float(), weight=batch.w)
+            self.logger.info(f'prediciton: {batch_output}, ground truth: {batch.y}')
             batch_loss = self.loss_func(batch_output, batch.y.float())
             batch_loss.backward()
             self.optimizer.step()

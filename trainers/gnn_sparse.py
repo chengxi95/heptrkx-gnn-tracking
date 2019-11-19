@@ -27,8 +27,8 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
         # Loop over training batches
         for i, batch in enumerate(data_loader):
-            batch.y = batch.y[0].view(1)
-            batch.w = batch.w[0].view(1)
+            batch.y = batch.y[0].view(1, -1)
+            batch.w = batch.w[0].view(1, -1)
             batch = batch.to(self.device)
             self.model.zero_grad()
             batch_output = self.model(batch)
@@ -85,8 +85,8 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
         # Loop over batches
         for i, batch in enumerate(data_loader):
-            batch.y = batch.y[0].view(1)
-            batch.w = batch.w[0].view(1)
+            batch.y = batch.y[0].view(1, -1)
+            batch.w = batch.w[0].view(1, -1)
             batch = batch.to(self.device)
             # Make predictions on this batch
             batch_output = self.model(batch)

@@ -139,8 +139,9 @@ class GNNSegmentClassifier(nn.Module):
             #logging.debug(f'shape of the cat tensor: {torch.cat([global_feature, global_node]).shape}')
 
         # Apply final edge network
-        
+        output_node = self.output_network(full_node[-1,:,:])
+        #logging.info(f'shape of output node: {output_node.shape}')
         #return self.edge_network(x, inputs.edge_index)
         
         #return self.output_network(x).squeeze(-1)
-        return self.output_network(global_node.squeeze(0))
+        return output_node

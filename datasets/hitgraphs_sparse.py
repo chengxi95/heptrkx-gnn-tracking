@@ -12,14 +12,15 @@ import torch_geometric
 
 def load_graph(filename):
     with np.load(filename) as f:
-        x, y = f['X'], f['ip']
-        y = np.asarray(y)
-        Ri_rows, Ri_cols = f['Ri_rows'], f['Ri_cols']
-        Ro_rows, Ro_cols = f['Ro_rows'], f['Ro_cols']
-        n_edges = Ri_cols.shape[0]
-        edge_index = np.zeros((2, n_edges), dtype=int)
-        edge_index[0, Ro_cols] = Ro_rows
-        edge_index[1, Ri_cols] = Ri_rows
+        with np.load('normal_ip.npy') as norm_ip:
+            x, y = f['X'], f['ip']/norm_ip['ip']
+            y = np.asarray(y)
+            Ri_rows, Ri_cols = f['Ri_rows'], f['Ri_cols']
+            Ro_rows, Ro_cols = f['Ro_rows'], f['Ro_cols']
+            n_edges = Ri_cols.shape[0]
+            edge_index = np.zeros((2, n_edges), dtype=int)
+            edge_index[0, Ro_cols] = Ro_rows
+            edge_index[1, Ri_cols] = Ri_rows
     return x, edge_index, y
 
 class HitGraphDataset(Dataset):

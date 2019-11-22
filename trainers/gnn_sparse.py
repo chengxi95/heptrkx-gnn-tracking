@@ -96,6 +96,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
             # Make predictions on this batch
             batch_output = self.model(batch)
             #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float()).item()
+            print(f'prediction: {batch_output}, gt: {batch.y}')
             batch_loss = self.loss_func(batch_output, batch.y.float()).item()
             sum_loss += batch_loss
 

@@ -33,6 +33,7 @@ def parse_args():
     add_arg('--gpu', type=int)
     add_arg('--rank-gpu', action='store_true')
     add_arg('--resume', action='store_true', help='Resume from last checkpoint')
+    add_arg('--eva', action='store_true')
     add_arg('--show-config', action='store_true')
     add_arg('--interactive', action='store_true')
     add_arg('--output-dir', help='override output_dir setting')
@@ -200,7 +201,12 @@ def main():
     # Checkpoint resume
     if args.resume:
         trainer.load_checkpoint()
-
+        if args.eva:
+            logging.info('Test start')
+            trainer.evaluate(valid_data_loader)
+            logging.info('All done!')
+            return
+        
     # Run the training
     logging.debug('Training')
     summary = trainer.train(train_data_loader=train_data_loader,

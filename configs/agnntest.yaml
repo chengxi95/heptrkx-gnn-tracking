@@ -1,4 +1,4 @@
-output_dir: finalresults/ip_trigger_with_fake_edge
+output_dir: finalresults/ip_trigger_with_fake_edge_10
 
 trainer:
     name: gnn_sparse
@@ -9,7 +9,7 @@ data:
     n_train: 1500
     n_valid: 200
     real_weight: 3
-    batch_size: 1
+    batch_size: 10
     n_workers: 4
 
 model:

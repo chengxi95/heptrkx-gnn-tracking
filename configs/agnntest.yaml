@@ -6,8 +6,8 @@ trainer:
 data:
     name: hitgraphs_sparse
     input_dir: results/ip_trigger_with_fake_edge
-    n_train: 1500
-    n_valid: 200
+    n_train: 18000
+    n_valid: 1800
     real_weight: 3
     batch_size: 128
     n_workers: 4

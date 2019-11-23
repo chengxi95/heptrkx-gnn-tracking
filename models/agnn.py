@@ -83,14 +83,14 @@ class GNNSegmentClassifier(nn.Module):
                                         hidden_activation, layer_norm=layer_norm)
 
         # Set LSTM layer to combine all node information
-        self.combine_layer = nn.LSTM(hidden_dim, hidden_dim)
+        #self.combine_layer = nn.LSTM(hidden_dim, hidden_dim)
         
         # Setup the output layers
         #self.output_network = make_mlp(hidden_dim, [hidden_dim, hidden_dim, hidden_dim, 1], output_activation=hidden_activation, layer_norm=layer_norm)
-        self.output_network = nn.Sequential(nn.Linear(hidden_dim, hidden_dim),
-                                            nn.ReLU(),
-                                            nn.Linear(hidden_dim, hidden_dim),
-                                            nn.ReLU(),
+        self.output_network = nn.Sequential(#nn.Linear(hidden_dim, hidden_dim),
+                                            #nn.ReLU(),
+                                            #nn.Linear(hidden_dim, hidden_dim),
+                                            #nn.ReLU(),
                                             nn.Linear(hidden_dim, hidden_dim),
                                             nn.ReLU(),
                                             nn.Linear(hidden_dim, 3))
@@ -128,8 +128,8 @@ class GNNSegmentClassifier(nn.Module):
             x = x + x0
 
         # use LSTM to combine all node information into one
-        full_node, (global_node, cn) = self.combine_layer(x.view(x.shape[0],1,-1))
-        logging.debug(f'shape after LSTM: {global_node.shape}')
+        #full_node, (global_node, cn) = self.combine_layer(x.view(x.shape[0],1,-1))
+        #logging.debug(f'shape after LSTM: {global_node.shape}')
             
             #global_node = global_node[:, global_node.shape[-2]-1, :].squeeze()
             #logging.debug(f'shape after slice: {global_node.shape}')
@@ -142,7 +142,8 @@ class GNNSegmentClassifier(nn.Module):
         #combine_node = torch.sum(x, dim=0)
         #return self.edge_network(x, inputs.edge_index)
         #logging.debug(f'shape of sum tensor: {torch.sum(x, dim=0).shape}')
-        output_node = self.output_network(full_node[-1,:,:])
+        combine_node = torch.sum(x, dim=0)
+        output_node = self.output_network(combine_node.view(1, -1))
         logging.debug(f'shape of output: {output_node.shape}')
         return output_node
         #return self.output_network(x).squeeze(-1)

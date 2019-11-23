@@ -29,5 +29,5 @@ optimizer:
         - {start_epoch: 64, end_epoch: 128, factor: 0.1}
 
 training:
-    n_total_epochs: 128
+    n_total_epochs: 500
 

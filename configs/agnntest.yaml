@@ -1,4 +1,4 @@
-output_dir: finalresults/ip_trigger_with_fake_edge
+output_dir: finalresults/trigger_with_fake_edge
 
 trainer:
     name: gnn_sparse
@@ -7,9 +7,9 @@ data:
     name: hitgraphs_sparse
     input_dir: results/ip_trigger_with_fake_edge
     n_train: 1
-    n_valid: 1700
+    n_valid: 19800
     real_weight: 3
-    batch_size: 1
+    batch_size: 128
     n_workers: 4
 
 model:
@@ -19,7 +19,7 @@ model:
     hidden_activation: Tanh
     n_graph_iters: 8
     layer_norm: true
-    loss_func: mse_loss
+    loss_func: binary_cross_entropy_with_logits
 
 optimizer:
     name: Adam

@@ -87,20 +87,20 @@ class GNNSegmentClassifier(nn.Module):
         
         # Setup the output layers
         #self.output_network = make_mlp(hidden_dim, [hidden_dim, hidden_dim, hidden_dim, 1], output_activation=hidden_activation, layer_norm=layer_norm)
-        self.output_network = nn.Sequential(#nn.Linear(hidden_dim, hidden_dim),
-                                            #nn.ReLU(),
-                                            #nn.Linear(hidden_dim, hidden_dim),
-                                            #nn.ReLU(),
+        self.output_network = nn.Sequential(nn.Linear(hidden_dim, hidden_dim),
+                                            nn.ReLU(),
                                             nn.Linear(hidden_dim, hidden_dim),
                                             nn.ReLU(),
-                                            nn.Linear(hidden_dim, 3)
+                                            nn.Linear(hidden_dim, hidden_dim),
+                                            nn.ReLU(),
+                                            nn.Linear(hidden_dim, 1)
                                             )
 
     def forward(self, inputs):
         """Apply forward pass of the model"""
 
         # Apply input network to get hidden representation
-        logging.debug(f'input x size: {inputs.x.shape}')
+        logging.info(f'input x size: {inputs.x.shape}')
         x = self.input_network(inputs.x)
         logging.debug(f'x size after input network: {x.shape}')
         # Shortcut connect the inputs onto the hidden representation

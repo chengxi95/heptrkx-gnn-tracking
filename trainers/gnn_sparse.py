@@ -90,13 +90,15 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
         # Loop over batches
         for i, batch in enumerate(data_loader):
-            batch.y = batch.y[0].view(1,-1)
+            print(f'input batch size: {batch.y.shape} batch keys {batch.keys}')
+            #batch.y = batch.y[0].view(1,-1)
             #batch.w = batch.w[0]
             batch = batch.to(self.device)
             # Make predictions on this batch
             batch_output = self.model(batch)
             #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float()).item()
-            print(f'prediction: {batch_output}, gt: {batch.y}')
+            print(f'x shape {batch.x.shape}, edge index shape {batch.edge_index.shape}')
+            print(f'prediction: {torch.sigmoid(batch_output)}, gt: {batch.y}')
             batch_loss = self.loss_func(batch_output, batch.y.float()).item()
             sum_loss += batch_loss
 

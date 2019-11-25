@@ -87,10 +87,10 @@ class GNNSegmentClassifier(nn.Module):
         
         # Setup the output layers
         #self.output_network = make_mlp(hidden_dim, [hidden_dim, hidden_dim, hidden_dim, 1], output_activation=hidden_activation, layer_norm=layer_norm)
-        self.output_network = nn.Sequential(#nn.Linear(hidden_dim, hidden_dim),
-                                            #nn.ReLU(),
-                                            #nn.Linear(hidden_dim, hidden_dim),
-                                            #nn.ReLU(),
+        self.output_network = nn.Sequential(nn.Linear(hidden_dim, hidden_dim),
+                                            nn.ReLU(),
+                                            nn.Linear(hidden_dim, hidden_dim),
+                                            nn.ReLU(),
                                             nn.Linear(hidden_dim, hidden_dim),
                                             nn.ReLU(),
                                             nn.Linear(hidden_dim, 1))
@@ -139,8 +139,8 @@ class GNNSegmentClassifier(nn.Module):
             #logging.debug(f'shape of the cat tensor: {torch.cat([global_feature, global_node]).shape}')
 
         # Apply final edge network
-        combine_node = torch.sum(x, dim=0)
-        output_node = self.output_network(combine_node.view(1, -1))
+        combine_node = scatter_add(x, inputs.batch, dim=0)
+        output_node = self.output_network(combine_node)
         #logging.info(f'shape of output node: {output_node.shape}')
         #return self.edge_network(x, inputs.edge_index)
         

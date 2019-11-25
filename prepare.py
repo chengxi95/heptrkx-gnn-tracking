@@ -91,17 +91,17 @@ def construct_graph(hits, layer_pairs,
     # Combine segments from all layer pairs
     segments = pd.concat(segments)
 
-    n_edges = segments.shape[0]
+    #n_edges = segments.shape[0]
 
     pid1 = hits.particle_id.loc[segments.index_1].values
     pid2 = hits.particle_id.loc[segments.index_2].values
 
-    print(f'before remove segments: {pid1.shape} {pid2.shape}')
-    y = np.zeros(n_edges, dtype=np.float32)
-    y[:] = (pid1 == pid2)
+    #print(f'before remove segments: {pid1.shape} {pid2.shape}')
+    #y = np.zeros(n_edges, dtype=np.float32)
+    #y[:] = (pid1 == pid2)
 #    print(f'after remove segments: {pid1.shape} {pid2.shape}')
     # only choose true edge
-    segments = segments[y!=0]
+    #segments = segments[y!=0]
     
     # Prepare the graph matrices
     n_hits = hits.shape[0]

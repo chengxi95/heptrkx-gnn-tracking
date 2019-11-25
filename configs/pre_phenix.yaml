@@ -1,6 +1,6 @@
 # input/output configuration
 input_dir: datasets/ip_trigger
-output_dir: results/ip_trigger
+output_dir: results/ip_trigger_with_fake_edge
 n_files: 19847
 
 # Graph building configuration

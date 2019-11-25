@@ -98,7 +98,7 @@ class GNNSegmentClassifier(nn.Module):
 
     def forward(self, inputs):
         """Apply forward pass of the model"""
-
+ 
         # Apply input network to get hidden representation
         logging.debug(f'input x size: {inputs.x.shape}')
         x = self.input_network(inputs.x)
@@ -140,11 +140,11 @@ class GNNSegmentClassifier(nn.Module):
             #logging.debug(f'shape of the cat tensor: {torch.cat([global_feature, global_node]).shape}')
 
         # Apply final edge network
-        logging.debug(f'shape of x: {x.shape}')
-        combine_node = torch.sum(x, dim=0)
+        logging.debug(f'shape of x: {x.shape}, shape of batch: {inputs.batch.shape}')
+        combine_node = scatter_add(x, inputs.batch, dim=0)
         #return self.edge_network(x, inputs.edge_index)
         logging.debug(f'shape of sum tensor: {combine_node.shape}')
-        output_node = self.output_network(combine_node.view(1, -1))
+        output_node = self.output_network(combine_node)
         logging.debug(f'shape of output: {output_node.shape}')
         return output_node
         #return self.output_network(x).squeeze(-1)

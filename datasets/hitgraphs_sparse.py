@@ -13,8 +13,8 @@ import torch_geometric
 def load_graph(filename):
     with np.load(filename) as f:
         with np.load('normal_ip.npz') as norm_ip:
-            x, y = f['X'], f['ip']/norm_ip['ip']
-            y = np.asarray(y)
+            x, y = f['X'], f['ip'][0]/norm_ip['ip']
+            y = np.asarray([y])
             Ri_rows, Ri_cols = f['Ri_rows'], f['Ri_cols']
             Ro_rows, Ro_cols = f['Ro_rows'], f['Ro_cols']
             n_edges = Ri_cols.shape[0]

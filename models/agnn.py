@@ -143,8 +143,10 @@ class GNNSegmentClassifier(nn.Module):
         logging.debug(f'shape of x: {x.shape}, shape of batch: {inputs.batch.shape}')
         combine_node = scatter_add(x, inputs.batch, dim=0)
         #return self.edge_network(x, inputs.edge_index)
+
         logging.debug(f'shape of sum tensor: {combine_node.shape}')
         output_node = self.output_network(combine_node)
+
         logging.debug(f'shape of output: {output_node.shape}')
         return output_node
         #return self.output_network(x).squeeze(-1)

@@ -83,46 +83,35 @@ class SparseGNNTrainer(GNNBaseTrainer):
         self.model.eval()
 
         # Prepare summary information
+        threshold_list = np.linspace(0, 10, num=11)
         summary = dict()
-        sum_loss = 0
-        #sum_correct = 0
-        #sum_total = 0
-
+        tp_list = np.zeros(len(threshold_list))
+        fp_list = np.zeros(len(threshold_list))
+        fn_list = np.zeros(len(threshold_list))
+        tn_list = np.zeros(len(threshold_list))
+        
         # Loop over batches
         for i, batch in enumerate(data_loader):
-            print(f'input batch size: {batch.y.shape} batch keys {batch.keys}')
-            #batch.y = batch.y[0].view(1,-1)
-            #batch.w = batch.w[0]
             batch = batch.to(self.device)
             # Make predictions on this batch
             batch_output = self.model(batch)
-            #batch_loss = self.loss_func(torch.sigmoid(batch_output), batch.y.float()).item()
-            print(f'x shape {batch.x.shape}, edge index shape {batch.edge_index.shape}')
-            print(f'prediction: {torch.sigmoid(batch_output)}, gt: {batch.y}')
-            batch_loss = self.loss_func(batch_output, batch.y.float()).item()
-            sum_loss += batch_loss
 
             # Count number of correct predictions
-            #batch_pred = torch.sigmoid(batch_output)
-            #predict_noise = batch_pred > 0.5
-            #predict_hits = batch_pred < 0.5
-            #true_noise = batch.y == 1
-            #true_hits = batch.y == 0
-            #self.logger.debug(f'\n--val batch predict noise: {predict_noise.sum().item()} true hits: {predict_hits.sum().item()} \n--val batch ground  noise: {true_noise.sum().item()} true hits: {true_hits.sum().item()}')
-            #matches = ((batch_pred > 0.5) == (batch.y > 0.5))
-            #sum_correct += matches.sum().item()
-            #sum_total += matches.numel()
-            self.logger.debug(' valid batch %i, loss %.4f', i, batch_loss)
+            batch_pred = torch.sigmoid(batch_output)
+            for i in range(len(threshold_list)):
+                tp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 1).sum().item()
+                fp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 0).sum().item()
+                fn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y == 1).sum().item()
+                tn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y ==0).sum().item()
 
         # Summarize the validation epoch
-        n_batches = i + 1
-        summary['valid_loss'] = sum_loss / n_batches
-        #summary['valid_acc'] = sum_correct / sum_total
-        self.logger.debug(' Processed %i samples in %i batches',
-                          len(data_loader.sampler), n_batches)
-        #self.logger.info('  Validation loss: %.3f acc: %.3f' %
-                         #(summary['valid_loss'], summary['valid_acc']))
-        self.logger.info('  Validation loss: %.3f', summary['valid_loss'])
+        summary['tp'] = tp_list
+        summary['fp'] = fp_list
+        summary['fn'] = fn_list
+        summary['tn'] = tn_list
+        #self.logger.debug(' Processed %i samples in %i batches',
+        #                  len(data_loader.sampler), n_batches)
+        #self.logger.info('  Validation acc: %.3f', (summary['tp'] + summary['tn'])/(summary['tp'] + summary['tn'] + summary['fp'] + summary['fn']))
         return summary
 
     @torch.no_grad()

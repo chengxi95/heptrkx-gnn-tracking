@@ -1,11 +1,11 @@
-output_dir: finalresults/trigger_with_fake_edge
+output_dir: finalresults/trigger
 
 trainer:
     name: gnn_sparse
 
 data:
     name: hitgraphs_sparse
-    input_dir: results/ip_trigger_with_fake_edge
+    input_dir: results/ip_trigger
     n_train: 18000
     n_valid: 1800
     real_weight: 3

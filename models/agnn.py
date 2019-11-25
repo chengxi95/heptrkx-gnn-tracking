@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 from torch_scatter import scatter_add
 import logging
+import numpy as np
 # Locals
 from .utils import make_mlp
 
@@ -95,6 +96,7 @@ class GNNSegmentClassifier(nn.Module):
                                             nn.ReLU(),
                                             nn.Linear(hidden_dim, 1))
 
+
     def forward(self, inputs):
         """Apply forward pass of the model"""
 
@@ -102,6 +104,9 @@ class GNNSegmentClassifier(nn.Module):
         logging.debug(f'input x size: {inputs.x.shape}')
         x = self.input_network(inputs.x)
         logging.debug(f'x size after input network: {x.shape}')
+
+        index_list = np.random.permutation(inputs.edge_index.shape[1])
+        logging.debug(index_list)
         # Shortcut connect the inputs onto the hidden representation
         #x = torch.cat([x, inputs.x], dim=-1)
 
@@ -115,11 +120,11 @@ class GNNSegmentClassifier(nn.Module):
             x0 = x
 
             # Apply edge network
-            e = torch.sigmoid(self.edge_network(x, inputs.edge_index))
-            logging.debug(f'shape after edge network: {e.shape}')
+            e = torch.sigmoid(self.edge_network(x, inputs.edge_index[:,index_list]))
+            logging.debug(f'shape of edge weight: {e.shape} number of edge: {inputs.edge_index.shape}')
 
             # Apply node network
-            x = self.node_network(x, e, inputs.edge_index)
+            x = self.node_network(x, e[index_list], inputs.edge_index[:,index_list])
             logging.debug(f'shape after node network: {x.shape}') 
             # Shortcut connect the inputs onto the hidden representation
             #x = torch.cat([x, inputs.x], dim=-1)

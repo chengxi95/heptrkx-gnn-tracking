@@ -143,7 +143,7 @@ def roc_plot(summary, figure):
     if figure == 'precision':
         plt.plot(x, tp/(fp+fp))
     if figure == 'recall':
-        plot.plot(x, tp/(tp+fn))
+        plt.plot(x, tp/(tp+fn))
     plt.show()
     return
 
@@ -221,7 +221,8 @@ def main():
             logging.info('Test start')
             summary = trainer.evaluate(valid_data_loader)
             logging.info('All done!')
-            roc_plot(summary, arg.plot)
+            np.savez('summary',summary = summary)
+            roc_plot(summary, args.plot)
             return
         
     # Run the training

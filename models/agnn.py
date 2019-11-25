@@ -88,10 +88,10 @@ class GNNSegmentClassifier(nn.Module):
         
         # Setup the output layers
         #self.output_network = make_mlp(hidden_dim, [hidden_dim, hidden_dim, hidden_dim, 1], output_activation=hidden_activation, layer_norm=layer_norm)
-        self.output_network = nn.Sequential(nn.Linear(hidden_dim, hidden_dim),
-                                            nn.ReLU(),
-                                            nn.Linear(hidden_dim, hidden_dim),
-                                            nn.ReLU(),
+        self.output_network = nn.Sequential(#nn.Linear(hidden_dim, hidden_dim),
+                                            #nn.ReLU(),
+                                            #nn.Linear(hidden_dim, hidden_dim),
+                                            #nn.ReLU(),
                                             nn.Linear(hidden_dim, hidden_dim),
                                             nn.ReLU(),
                                             nn.Linear(hidden_dim, 1))
@@ -105,8 +105,8 @@ class GNNSegmentClassifier(nn.Module):
         x = self.input_network(inputs.x)
         logging.debug(f'x size after input network: {x.shape}')
 
-        index_list = np.random.permutation(inputs.edge_index.shape[1])
-        logging.debug(index_list)
+        #index_list = np.random.permutation(inputs.edge_index.shape[1])
+        #logging.debug(index_list)
         # Shortcut connect the inputs onto the hidden representation
         #x = torch.cat([x, inputs.x], dim=-1)
 
@@ -120,11 +120,11 @@ class GNNSegmentClassifier(nn.Module):
             x0 = x
 
             # Apply edge network
-            e = torch.sigmoid(self.edge_network(x, inputs.edge_index[:,index_list]))
+            e = torch.sigmoid(self.edge_network(x, inputs.edge_index))
             logging.debug(f'shape of edge weight: {e.shape} number of edge: {inputs.edge_index.shape}')
 
             # Apply node network
-            x = self.node_network(x, e[index_list], inputs.edge_index[:,index_list])
+            x = self.node_network(x, e, inputs.edge_index)
             logging.debug(f'shape after node network: {x.shape}') 
             # Shortcut connect the inputs onto the hidden representation
             #x = torch.cat([x, inputs.x], dim=-1)

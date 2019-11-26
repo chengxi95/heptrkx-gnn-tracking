@@ -28,7 +28,7 @@ def parse_args():
     add_arg = parser.add_argument
     add_arg('config', nargs='?', default='configs/agnntest.yaml')
     add_arg('-d', '--distributed', choices=['ddp-file', 'ddp-mpi', 'cray'])
-    add_arg('--plot', default='acc', choices=['acc', 'recall', 'precision'])
+    #add_arg('--plot', default='acc', choices=['acc', 'recall', 'precision'])
     add_arg('-v', '--verbose', action='store_true')
     add_arg('--ranks-per-node', default=8)
     add_arg('--gpu', type=int)
@@ -221,8 +221,8 @@ def main():
             logging.info('Test start')
             summary = trainer.evaluate(valid_data_loader)
             logging.info('All done!')
-            np.savez('summary',summary = summary)
-            roc_plot(summary, args.plot)
+            np.savez('summary',**summary)
+            #roc_plot(summary, args.plot)
             return
         
     # Run the training

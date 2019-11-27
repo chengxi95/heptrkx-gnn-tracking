@@ -19,43 +19,58 @@ class SparseGNNTrainer(GNNBaseTrainer):
     def evaluate(self, data_loader):
         """"Evaluate the model"""
         self.model.eval()
+        MODE = "ip"
 
-        # Prepare summary information
-        threshold_list = np.linspace(0, 10, num=11)
-        summary = dict()
-        tp_list = np.zeros(len(threshold_list))
-        fp_list = np.zeros(len(threshold_list))
-        fn_list = np.zeros(len(threshold_list))
-        tn_list = np.zeros(len(threshold_list))
-        prediction = []
-        gt = []
-        # Loop over batches
-        for i, batch in enumerate(data_loader):
-            batch = batch.to(self.device)
-            # Make predictions on this batch
-            batch_output = self.model(batch)
+        if MODE == "trigger":
+            # Prepare summary information
+            threshold_list = np.linspace(0, 10, num=11)
+            summary = dict()
+            tp_list = np.zeros(len(threshold_list))
+            fp_list = np.zeros(len(threshold_list))
+            fn_list = np.zeros(len(threshold_list))
+            tn_list = np.zeros(len(threshold_list))
 
-            # Count number of correct predictions
-            batch_pred = torch.sigmoid(batch_output)
-            prediction = np.append(prediction, batch_pred)
-            logging.info(f'prediction shape: {batch_pred.shape},gt shape: {batch.y.shape}')
-            gt = np.append(gt, batch.y)
-            for i in range(len(threshold_list)):
-                tp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 1).sum().item()
-                fp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 0).sum().item()
-                fn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y == 1).sum().item()
-                tn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y ==0).sum().item()
+            # Loop over batches
+            for i, batch in enumerate(data_loader):
+                batch = batch.to(self.device)
+                # Make predictions on this batch
+                batch_output = self.model(batch)
 
-        # Summarize the validation epoch
-        summary['tp'] = tp_list
-        summary['fp'] = fp_list
-        summary['fn'] = fn_list
-        summary['tn'] = tn_list
-        summary['pred'] = prediction
-        summary['gt'] = gt
-        #self.logger.debug(' Processed %i samples in %i batches',
-        #                  len(data_loader.sampler), n_batches)
-        #self.logger.info('  Validation acc: %.3f', (summary['tp'] + summary['tn'])/(summary['tp'] + summary['tn'] + summary['fp'] + summary['fn']))
+                # Count number of correct predictions
+                batch_pred = torch.sigmoid(batch_output)
+                for i in range(len(threshold_list)):
+                    tp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 1).sum().item()
+                    fp_list[i] += np.logical_and(batch_pred >= threshold_list[i], batch.y == 0).sum().item()
+                    fn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y == 1).sum().item()
+                    tn_list[i] += np.logical_and(batch_pred < threshold_list[i], batch.y ==0).sum().item()
+
+            # Summarize the validation epoch
+            summary['tp'] = tp_list
+            summary['fp'] = fp_list
+            summary['fn'] = fn_list
+            summary['tn'] = tn_list
+        else:
+            # Prepare summary information
+            summary = dict()
+            sum_loss = 0
+            norm_ip = np.load('normal_ip.npz')
+
+            # Loop over batches
+            for i, batch in enumerate(data_loader):
+                batch.y = batch.y.view(-1,3)
+                batch = batch.to(self.device)
+                # Make predictions on this batch
+                batch_output = self.model(batch)
+
+                # Count number of correct predictions
+                batch_loss = self.loss_func(batch_output/norm_ip['ip'], batch.y.float()/norm_ip['ip']).item()
+                sum_loss += batch_loss
+
+            # Summarize the validation epoch
+            n_batches = i + 1
+            summary['valid_loss'] = sum_loss / n_batches
+            self.logger.info('Validation loss: %.3f', summary['valid_loss']
+
         return summary
 
     @torch.no_grad()

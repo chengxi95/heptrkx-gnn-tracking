@@ -115,22 +115,26 @@ class SparseGNNTrainer(GNNBaseTrainer):
             summary = dict()
             sum_loss = 0
             norm_ip = np.load('normal_ip.npz')
+            norm_factor = torch.from_numpy(norm_ip['ip'])
 
             # Loop over batches
             for i, batch in enumerate(data_loader):
                 batch.y = batch.y.view(-1,3)
                 batch = batch.to(self.device)
+                norm_factor = norm_factor.to(self.device)
                 # Make predictions on this batch
                 batch_output = self.model(batch)
 
                 # Count number of correct predictions
-                batch_loss = self.loss_func(batch_output/norm_ip['ip'], batch.y.float()/norm_ip['ip']).item()
+                batch_loss = self.loss_func(batch_output*norm_factor, batch.y.float()*norm_factor).item()
                 sum_loss += batch_loss
+                batch_loss_unnorm = self.loss_func(batch_output, batch.y.float()).item()
+                self.logger.info(f'norm batch loss: {batch_loss},unnorm: {batch_loss_unnorm}')
 
             # Summarize the validation epoch
             n_batches = i + 1
             summary['valid_loss'] = sum_loss / n_batches
-            self.logger.info('Validation loss: %.3f', summary['valid_loss']
+            self.logger.info('Validation loss: %.3f', summary['valid_loss'])
 
         return summary
 

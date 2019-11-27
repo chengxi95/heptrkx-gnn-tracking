@@ -36,7 +36,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
             batch_pred = torch.sigmoid(batch_output)
             self.logger.debug(f'prediction: {batch_pred}, ground gruth: {batch.y}')
             logging.debug(f'match type and y type {type(batch_pred)} {type(batch.y)}')
-            matches = ((batch_pred > 0.5) == (batch.y > 0.5))
+            matches = ((batch_pred > 0.75) == (batch.y > 0.75))
             sum_correct += matches.sum().item()
             sum_total += matches.numel()
 
@@ -46,8 +46,8 @@ class SparseGNNTrainer(GNNBaseTrainer):
             batch_loss.backward()
             self.optimizer.step()
             sum_loss += batch_loss.item()
-            predict_noise = batch_pred > 0.5
-            predict_hits = batch_pred < 0.5
+            predict_noise = batch_pred > 0.75
+            predict_hits = batch_pred < 0.75
             true_noise = batch.y == 1
             true_hits = batch.y == 0
             self.logger.debug(f'\n--train batch predict noise: {predict_noise.sum().item()} true hits: {predict_hits.sum().item()} \n--train batch ground  noise: {true_noise.sum().item()} true hits: {true_hits.sum().item()}')
@@ -96,13 +96,13 @@ class SparseGNNTrainer(GNNBaseTrainer):
 
             # Count number of correct predictions
             batch_pred = torch.sigmoid(batch_output)
-            predict_noise = batch_pred > 0.5
-            predict_hits = batch_pred < 0.5
+            predict_noise = batch_pred > 0.75
+            predict_hits = batch_pred < 0.75
             true_noise = batch.y == 1
             true_hits = batch.y == 0
             self.logger.debug(f'prediction: {batch_pred}, ground gruth: {batch.y}')
             self.logger.debug(f'\n--val batch predict noise: {predict_noise.sum().item()} true hits: {predict_hits.sum().item()} \n--val batch ground  noise: {true_noise.sum().item()} true hits: {true_hits.sum().item()}')
-            matches = ((batch_pred > 0.5) == (batch.y > 0.5))
+            matches = ((batch_pred > 0.75) == (batch.y > 0.75))
             sum_correct += matches.sum().item()
             sum_total += matches.numel()
             self.logger.debug(' valid batch %i, loss %.4f', i, batch_loss)

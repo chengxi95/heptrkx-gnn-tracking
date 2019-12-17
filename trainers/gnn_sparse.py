@@ -81,7 +81,7 @@ class SparseGNNTrainer(GNNBaseTrainer):
         """"Evaluate the model"""
         self.model.eval()
         MODE = "ip"
-
+        
         if MODE == "trigger":
             # Prepare summary information
             threshold_list = np.linspace(0, 10, num=11)
@@ -120,17 +120,20 @@ class SparseGNNTrainer(GNNBaseTrainer):
             # Loop over batches
             for i, batch in enumerate(data_loader):
                 batch.y = batch.y.view(-1,3)
+                
                 batch = batch.to(self.device)
                 norm_factor = norm_factor.to(self.device)
                 # Make predictions on this batch
                 batch_output = self.model(batch)
 
+                np.savez("./prediction/"+str(i),**dict(x = batch.x.numpy(), edge_index = batch.edge_index.numpy(), ip_gt = (batch.y*norm_factor).numpy(), ip_pred = (batch_output*norm_factor).numpy()))
+                
                 # Count number of correct predictions
                 batch_loss = self.loss_func(batch_output*norm_factor, batch.y.float()*norm_factor).item()
                 sum_loss += batch_loss
                 batch_loss_unnorm = self.loss_func(batch_output, batch.y.float()).item()
                 self.logger.info(f'norm batch loss: {batch_loss},unnorm: {batch_loss_unnorm}')
-
+            
             # Summarize the validation epoch
             n_batches = i + 1
             summary['valid_loss'] = sum_loss / n_batches

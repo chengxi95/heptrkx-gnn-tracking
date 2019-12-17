@@ -9,7 +9,7 @@ data:
     n_train: 1
     n_valid: 19800
     real_weight: 3
-    batch_size: 128
+    batch_size: 1
     n_workers: 4
 
 model:
